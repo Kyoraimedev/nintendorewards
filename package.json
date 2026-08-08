@@ -1,0 +1,17 @@
+{
+  "name": "nintendo-rewards-discord",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Surveille les My Nintendo Rewards FR et notifie Discord via webhook",
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check-rewards.mjs",
+    "test:discord": "node scripts/test-discord.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "playwright": "^1.54.2"
+  }
+}
