@@ -27,10 +27,9 @@ const body = {
       url: sample.url,
       color: NINTENDO_RED,
       description:
-        '✨ **Nouvelle récompense disponible** sur le Nintendo Store FR\n_(Ceci est un message de test du monitoring GitHub Actions)_',
+        '🕺 **Nouvelle récompense disponible** sur le Nintendo Store FR\n_(Ceci est un message de test du monitoring GitHub Actions)_',
       fields: [
         { name: 'Prix', value: sample.price, inline: true },
-        { name: 'Statut', value: '✅ En stock', inline: true },
       ],
       thumbnail: { url: sample.image },
       footer: { text: 'Nintendo Rewards Monitor FR · test' },

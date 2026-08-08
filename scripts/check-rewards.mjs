@@ -209,17 +209,12 @@ function buildEmbed(reward) {
     url: reward.url,
     color: NINTENDO_RED,
     description: isRestock
-      ? '🔄 **De nouveau disponible** sur le Nintendo Store FR'
-      : '✨ **Nouvelle récompense disponible** sur le Nintendo Store FR',
+      ? '🕺 **De nouveau disponible** sur le Nintendo Store FR'
+      : '🕺 **Nouvelle récompense disponible** sur le Nintendo Store FR',
     fields: [
       {
         name: 'Prix',
         value: reward.price || 'Voir le store',
-        inline: true,
-      },
-      {
-        name: 'Statut',
-        value: '✅ En stock',
         inline: true,
       },
     ],
