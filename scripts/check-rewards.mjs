@@ -232,6 +232,9 @@ async function notifyDiscord(rewards) {
     throw new Error('DISCORD_WEBHOOK_URL manquant (secret GitHub ou .env local)');
   }
 
+  const pingRoleId = process.env.DISCORD_PING_ROLE_ID || '1535705354069876817';
+  const ping = `<@&${pingRoleId}>`;
+
   // Discord: max 10 embeds par message
   for (let i = 0; i < rewards.length; i += 10) {
     const chunk = rewards.slice(i, i + 10);
@@ -239,8 +242,11 @@ async function notifyDiscord(rewards) {
       username: 'Nintendo Rewards FR',
       content:
         chunk.length === 1
-          ? '🎮 Une récompense vient d’être disponible !'
-          : `🎮 **${chunk.length}** récompenses viennent d’être disponibles !`,
+          ? `${ping} 🎮 Une récompense vient d’être disponible !`
+          : `${ping} 🎮 **${chunk.length}** récompenses viennent d’être disponibles !`,
+      allowed_mentions: {
+        roles: [pingRoleId],
+      },
       embeds: chunk.map(buildEmbed),
     };
 
