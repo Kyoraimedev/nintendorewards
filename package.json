@@ -9,7 +9,7 @@
     "test:discord": "node scripts/test-discord.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "dependencies": {
     "playwright": "^1.54.2"
