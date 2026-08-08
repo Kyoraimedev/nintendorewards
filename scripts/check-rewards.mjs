@@ -214,7 +214,7 @@ function buildEmbed(reward) {
     fields: [
       {
         name: 'Prix',
-        value: reward.price || 'Voir le store',
+        value: `💰 ${reward.price || 'Voir le store'}`,
         inline: true,
       },
     ],

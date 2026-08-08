@@ -29,7 +29,7 @@ const body = {
       description:
         '🕺 **Nouvelle récompense disponible** sur le Nintendo Store FR\n_(Ceci est un message de test du monitoring GitHub Actions)_',
       fields: [
-        { name: 'Prix', value: sample.price, inline: true },
+        { name: 'Prix', value: `💰 ${sample.price}`, inline: true },
       ],
       thumbnail: { url: sample.image },
       footer: { text: 'Nintendo Rewards Monitor FR · test' },
