@@ -242,8 +242,8 @@ async function notifyDiscord(rewards) {
       username: 'Nintendo Rewards FR',
       content:
         chunk.length === 1
-          ? `${ping} 🎮 Une récompense vient d’être disponible !`
-          : `${ping} 🎮 **${chunk.length}** récompenses viennent d’être disponibles !`,
+          ? `🎮 Une récompense vient d’être disponible ! ${ping}`
+          : `🎮 **${chunk.length}** récompenses viennent d’être disponibles ! ${ping}`,
       allowed_mentions: {
         roles: [pingRoleId],
       },
