@@ -112,7 +112,22 @@ function extractRewardsFromDom() {
 }
 
 async function scrapeRewards() {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      '--disable-dev-shm-usage',
+      '--no-sandbox',
+      '--disable-gpu',
+      '--disable-extensions',
+      '--disable-background-networking',
+      '--disable-default-apps',
+      '--disable-sync',
+      '--mute-audio',
+      '--no-first-run',
+      '--disable-translate',
+      '--disable-software-rasterizer',
+    ],
+  });
   const page = await browser.newPage({
     locale: 'fr-FR',
     userAgent:
