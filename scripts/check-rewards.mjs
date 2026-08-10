@@ -17,7 +17,7 @@ const STORE_BASE =
 const MAX_PAGES = 20;
 const PAGE_SETTLE_MS = 2500;
 const NINTENDO_RED = 0xe60012;
-const COOLDOWN_DAYS = Number(process.env.COOLDOWN_DAYS) || 10;
+const COOLDOWN_DAYS = Number(process.env.COOLDOWN_DAYS) || 15;
 const COOLDOWN_MS = COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
 
 function urlForPage(pageNum) {

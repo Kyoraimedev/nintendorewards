@@ -5,7 +5,7 @@ services:
     environment:
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL}
       DISCORD_PING_ROLE_ID: ${DISCORD_PING_ROLE_ID:-1535705354069876817}
-      COOLDOWN_DAYS: ${COOLDOWN_DAYS:-10}
+      COOLDOWN_DAYS: ${COOLDOWN_DAYS:-15}
     volumes:
       # Persiste l'état entre les checks / redeploys
       - nintendo-rewards-data:/app/data
