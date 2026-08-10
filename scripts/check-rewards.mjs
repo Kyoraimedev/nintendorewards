@@ -17,6 +17,8 @@ const STORE_BASE =
 const MAX_PAGES = 20;
 const PAGE_SETTLE_MS = 2500;
 const NINTENDO_RED = 0xe60012;
+const COOLDOWN_DAYS = Number(process.env.COOLDOWN_DAYS) || 10;
+const COOLDOWN_MS = COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
 
 function urlForPage(pageNum) {
   const u = new URL(STORE_BASE);
@@ -188,6 +190,7 @@ async function saveState(rewards) {
   await mkdir(dirname(STATE_PATH), { recursive: true });
   const payload = {
     lastCheck: new Date().toISOString(),
+    cooldownDays: COOLDOWN_DAYS,
     rewards: rewards.map((r) => ({
       name: r.name,
       price: r.price,
@@ -195,9 +198,18 @@ async function saveState(rewards) {
       image: r.image || null,
       available: r.available !== false,
       foundAt: r.foundAt || new Date().toISOString(),
+      lastSeenAvailableAt: r.lastSeenAvailableAt || null,
+      lastNotifiedAt: r.lastNotifiedAt || null,
     })),
   };
   await writeFile(STATE_PATH, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+}
+
+function isWithinCooldown(iso) {
+  if (!iso) return false;
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return false;
+  return Date.now() - t < COOLDOWN_MS;
 }
 
 function findNewlyAvailable(current, previous) {
@@ -215,6 +227,68 @@ function findNewlyAvailable(current, previous) {
   }
 
   return newlyAvailable;
+}
+
+/** Pas de re-ping / pas de ping si déjà vue en stock dans les COOLDOWN_DAYS derniers jours. */
+function applyCooldown(candidates, previous) {
+  const prevByUrl = new Map(previous.map((r) => [r.url, r]));
+  const kept = [];
+
+  for (const reward of candidates) {
+    const prev = prevByUrl.get(reward.url);
+    const lastNotifiedAt = prev?.lastNotifiedAt || null;
+    // Si l'ancien état n'avait pas le champ, une fiche "available" compte comme récemment en stock
+    const lastSeenAvailableAt =
+      prev?.lastSeenAvailableAt || (prev?.available ? prev.foundAt || null : null);
+
+    if (isWithinCooldown(lastNotifiedAt)) {
+      console.log(
+        `⏳ skip (déjà notifiée <${COOLDOWN_DAYS}j) : ${reward.name}`,
+      );
+      continue;
+    }
+    if (isWithinCooldown(lastSeenAvailableAt)) {
+      console.log(
+        `⏳ skip (déjà en stock <${COOLDOWN_DAYS}j) : ${reward.name}`,
+      );
+      continue;
+    }
+
+    kept.push(reward);
+  }
+
+  return kept;
+}
+
+function mergeState(current, previous, notifiedUrls, nowIso) {
+  const prevByUrl = new Map(previous.map((r) => [r.url, r]));
+
+  return current.map((r) => {
+    const prev = prevByUrl.get(r.url);
+    let lastSeenAvailableAt = prev?.lastSeenAvailableAt || null;
+
+    if (r.available) {
+      lastSeenAvailableAt = nowIso;
+    } else if (!lastSeenAvailableAt && prev?.available) {
+      lastSeenAvailableAt = prev.foundAt || nowIso;
+    }
+
+    let lastNotifiedAt = prev?.lastNotifiedAt || null;
+    if (notifiedUrls.has(r.url)) {
+      lastNotifiedAt = nowIso;
+    }
+
+    return {
+      name: r.name,
+      price: r.price,
+      url: r.url,
+      image: r.image || null,
+      available: r.available !== false,
+      foundAt: r.foundAt || nowIso,
+      lastSeenAvailableAt,
+      lastNotifiedAt,
+    };
+  });
 }
 
 function buildEmbed(reward) {
@@ -290,9 +364,11 @@ async function main() {
   console.log('🕵️ Scraping My Nintendo Rewards FR...');
   const current = await scrapeRewards();
   console.log(`✓ ${current.length} récompense(s) trouvée(s)`);
+  console.log(`⏱️ Cooldown notif : ${COOLDOWN_DAYS} jour(s)`);
 
   const prev = await loadState();
   const isFirstRun = prev.rewards.length === 0;
+  const nowIso = new Date().toISOString();
 
   let toNotify = findNewlyAvailable(current, prev.rewards);
 
@@ -305,12 +381,23 @@ async function main() {
     // Premier run : on initialise l'état sans spammer Discord
     console.log('🆕 Premier run — initialisation sans notification');
     toNotify = [];
+  } else {
+    const before = toNotify.length;
+    toNotify = applyCooldown(toNotify, prev.rewards);
+    if (before > toNotify.length) {
+      console.log(
+        `🧊 Cooldown : ${before - toNotify.length} ignorée(s), ${toNotify.length} à notifier`,
+      );
+    }
   }
+
+  const notifiedUrls = new Set();
 
   if (toNotify.length > 0) {
     console.log(`🔔 ${toNotify.length} nouvelle(s) dispo(s) à notifier`);
     for (const r of toNotify) {
       console.log(`   - [${r.reason}] ${r.name} (${r.price})`);
+      notifiedUrls.add(r.url);
     }
     if (!dryRun) {
       await notifyDiscord(toNotify);
@@ -319,11 +406,12 @@ async function main() {
       console.log('💤 dry-run : pas d’envoi Discord');
     }
   } else {
-    console.log('😴 Aucune nouvelle récompense disponible');
+    console.log('😴 Aucune nouvelle récompense à notifier');
   }
 
   if (!dryRun) {
-    await saveState(current);
+    const merged = mergeState(current, prev.rewards, notifiedUrls, nowIso);
+    await saveState(merged);
     console.log(`💾 État sauvegardé → ${STATE_PATH}`);
   }
 }
