@@ -4,11 +4,3 @@ node_modules
 .env
 .env.*
 !.env.example
-*.md
-icons
-popup.html
-popup.js
-background.js
-manifest.json
-.gitignore
-.dockerignore
