@@ -1,7 +1,7 @@
 # Image Playwright officielle (Chromium inclus).
 # Idle ≈ quasi rien grâce à `sleep infinity`.
 # Sur Coolify : Scheduled Task toutes les 15 min → `node scripts/check-rewards.mjs`
-FROM mcr.microsoft.com/playwright:v1.54.2-jammy
+FROM mcr.microsoft.com/playwright:v1.62.1-jammy
 
 WORKDIR /app
 
